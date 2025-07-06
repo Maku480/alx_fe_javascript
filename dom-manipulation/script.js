@@ -21,10 +21,21 @@ function saveQuotes() {
 }
 
 function showRandomQuote() {
+const selectedCategory = document.getElementById("categoryFilter").value;
   const quoteDisplay = document.getElementById("quoteDisplay");
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  const quote = quotes[randomIndex];
-  quoteDisplay.innerText = `"${quote.text}" — ${quote.category}`;
+
+  const filteredQuotes = selectedCategory === "all"
+    ? quotes
+    : quotes.filter(q => q.category === selectedCategory);
+
+  if (filteredQuotes.length === 0) {
+    quoteDisplay.innerText = "No quotes in this category.";
+    return;
+  }
+
+  const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+  const quote = filteredQuotes[randomIndex];
+  quoteDisplay.innerText = `"${quote.text}" — ${quote.category}`;  
 }
 
 function addQuote() {
@@ -34,16 +45,32 @@ function addQuote() {
   if (newText && newCategory) {
     const newQuote = { text: newText, category: newCategory };
     quotes.push(newQuote);
-    saveQuotes(); // Persist changes
-
+    saveQuotes();
+    populateCategoryFilter(); // Refresh dropdown
     document.getElementById("newQuoteText").value = "";
     document.getElementById("newQuoteCategory").value = "";
     showRandomQuote();
   }
 }
+function populateCategoryFilter() {
+  const filter = document.getElementById("categoryFilter");
+  const categories = [...new Set(quotes.map(q => q.category))];
+
+  // Clear existing options
+  filter.innerHTML = '<option value="all">All Categories</option>';
+
+  categories.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    filter.appendChild(option);
+  });
+}
 
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+document.getElementById("categoryFilter").addEventListener("change", showRandomQuote);
 
 // Initialize the app
 loadQuotes();
+populateCategoryFilter();
 showRandomQuote();
